@@ -9,6 +9,7 @@ import shlex
 from subprocess import Popen, PIPE
 
 train_data = {}
+mean_accuracy = 0
 	
 def train (pos, neg, voc):
 	print "Starting training."
@@ -58,6 +59,7 @@ def test_review (train_data, review, pos, neg, voc):
 	return True if pos_prob > neg_prob else False
 	
 def test(pos, neg, posstr, negstr, vocstr):
+	global mean_accuracy
 	print "Testing phase."
 	with open (pos , 'r') as myfile:
 		pos_lines = myfile.readlines ()
@@ -71,15 +73,15 @@ def test(pos, neg, posstr, negstr, vocstr):
 	
 	for review in pos_lines:
 		progress = progress + 1
-		print str(progress * 100 / total_rev) + "%" + "\r", 
+		print str(progress * 100 / total_rev) + "%" + " "*25 + "\r", 
 		if test_review (train_data, review, posstr, negstr, vocstr):
 			correct = correct + 1
 	for review in neg_lines:
 		progress = progress + 1
-		print str(progress * 100 / total_rev) + "%" + "\r",
+		print str(progress * 100 / total_rev) + "%" + " "*25 + "\r",
 		if not test_review (train_data, review, posstr, negstr, vocstr):
 			correct = correct + 1
-	
+	mean_accuracy += correct
 	print "Accuracy : " + str(correct) + " of 100"
 	
 os.system("setterm -cursor off")
@@ -97,4 +99,7 @@ for i in xrange(10):
 	train_data={}
 	train (pos, neg, voc)
 	test ("test_pos.txt", "test_neg.txt", pos, neg, voc)
-	
+
+print "Mean accuracy: " + str(mean_accuracy / 10)
+os.system("setterm -cursor on")
+
