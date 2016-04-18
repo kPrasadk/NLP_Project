@@ -14,19 +14,19 @@ mean_accuracy = 0
 def train (pos, neg, voc):
 	print "Starting training."
 	i = 0
-	pos_count = len(pos.split()) + len(voc)
-	neg_count = len(neg.split()) + len(voc)
 	for word in voc:
-		train_data[word] =  (smooth(word, pos, pos_count), smooth(word, neg, neg_count))
+		train_data[word] =  (smooth(word, pos, len(voc)), smooth(word, neg, len(voc)))
 		i = i + 1
 		print str(i * 100 / len(voc)) +"% " + word + " "*25 + "\r",	
+	print "Complete." + " " * 25
 	#pickle.dump(train_data, "pickled.txt")
 	
 def count (word, text):
 	return text.count (word)
    
 def smooth(word, text, voc_size):
-	return (math.log(count(word, text) + 1) - math.log (voc_size))
+	f_word, s_word = word.split()
+	return math.log(count(word, text) + 1) - math.log (count(f_word,text) + voc_size)
 
 def get_train_data(pos_file, neg_file, iteration):
 	print "Fold Number "+str(iteration + 1)
@@ -49,12 +49,13 @@ def get_train_data(pos_file, neg_file, iteration):
 def test_review (train_data, review, pos, neg, voc):
 	pos_prob = 0.0
 	neg_prob = 0.0
-	for word in review.split():
+	rev_words = review.split()
+	for word in [rev_words[i] + " " + rev_words[i + 1] for i in xrange(len(rev_words) - 1)]:
 		prob = train_data.get(word)
-		
+		f_word, s_word = word.split()
 		if prob is None:
-			pos_prob += -( math.log(len(pos.split()) + len(voc)))
-			neg_prob += -( math.log(len(neg.split()) + len(voc)))
+			pos_prob += -math.log(count(f_word,pos) + len(voc))
+			neg_prob += -math.log(count(f_word,neg) + len(voc))
 		else :
 			pos_prob = pos_prob + prob[0]
 			neg_prob = neg_prob + prob[1]
@@ -97,7 +98,8 @@ for i in xrange(10):
 		neg = myfile.read().replace('\n', ' ')
 	  
 	with open("vocabulary.txt","r") as f:
-		voc = f.read().split()
+		voc = f.read().split('\n')
+	voc = voc[:-1]
 	train_data={}
 	train (pos, neg, voc)
 	test ("test_pos.txt", "test_neg.txt", pos, neg, voc)

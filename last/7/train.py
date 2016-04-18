@@ -25,8 +25,8 @@ def count (word, text):
 	return text.count (word)
    
 def smooth(word, text, voc_size):
-	#f_word, s_word = word.split()
-	return math.log(count(word, text) + 1) - math.log (voc_size)
+	f_word, s_word = word.split()
+	return math.log(count(word, text) + 1) - math.log (count(f_word,text) + voc_size)
 
 def get_train_data(pos_file, neg_file, iteration):
 	print "Fold Number "+str(iteration + 1)
@@ -54,8 +54,8 @@ def test_review (train_data, review, pos, neg, voc):
 		prob = train_data.get(word)
 		f_word, s_word = word.split()
 		if prob is None:
-			pos_prob = -math.log(len(voc))
-			neg_prob = -math.log(len(voc))
+			pos_prob += -math.log(count(f_word,text) + len(voc))
+			neg_prob += -math.log(count(f_word,text) + len(voc))
 		else :
 			pos_prob = pos_prob + prob[0]
 			neg_prob = neg_prob + prob[1]
